@@ -55,6 +55,10 @@ import JSONFormatter from 'https://cdn.skypack.dev/json-formatter-js@2.3.4?min';
                 files: []
             };
 
+            // Extract current directory name from the path
+            const pathParts = dirPath.split('/');
+            const currentDir = pathParts[pathParts.length - 1].replace(/\/$/, '');
+
             // Process links
             for (const link of links) {
                 const href = link.getAttribute('href');
@@ -65,13 +69,19 @@ import JSONFormatter from 'https://cdn.skypack.dev/json-formatter-js@2.3.4?min';
                     continue;
                 }
 
+                // Get clean name from href (without trailing slash)
+                const rawName = href.replace(/\/$/, '');
+                const dirName = basename(rawName);
+
+                // Skip if this is the root directory or current directory
+                if (dirName === ROOT_DIR || dirName === currentDir) {
+                    continue;
+                }
+
                 // Check if it's a directory (typically ends with a slash)
                 const isDirectory = href.endsWith('/');
 
                 if (isDirectory) {
-                    // Get just the directory name without path
-                    const dirName = basename(href.replace(/\/$/, ''));
-
                     items.directories.push({
                         name: dirName,
                         href: href
@@ -98,6 +108,9 @@ import JSONFormatter from 'https://cdn.skypack.dev/json-formatter-js@2.3.4?min';
     async function displayDirectory(path) {
         // Normalize the path
         path = cleanPath(path);
+
+        // Log the path for debugging
+        console.log(`Displaying directory: ${path}`);
 
         // Prepare fetch path - ensure it points to the correct directory
         let fetchPath;
@@ -154,13 +167,11 @@ import JSONFormatter from 'https://cdn.skypack.dev/json-formatter-js@2.3.4?min';
                 // Build proper hash path
                 let dirPath;
 
-                // If href already contains the full path
-                if (dir.href.startsWith(`${ROOT_DIR}/`)) {
-                    dirPath = cleanPath(dir.href);
-                } else {
-                    // Otherwise build the path from current location
-                    dirPath = cleanPath(`${path}/${dir.name}`);
-                }
+                // Build the path from current location
+                dirPath = cleanPath(`${path}/${dir.name}`);
+
+                // Log the directory path being built
+                console.log(`Building dir link: ${dir.name} → ${dirPath}`);
 
                 html += `
                     <a href="#${dirPath}" class="item folder-item">
@@ -182,13 +193,11 @@ import JSONFormatter from 'https://cdn.skypack.dev/json-formatter-js@2.3.4?min';
                 // Build proper hash path
                 let filePath;
 
-                // If href already contains the full path
-                if (file.href.startsWith(`${ROOT_DIR}/`)) {
-                    filePath = file.href;
-                } else {
-                    // Otherwise build the path from current location
-                    filePath = `${path}/${file.name}`;
-                }
+                // Build the path from current location
+                filePath = `${path}/${file.name}`;
+
+                // Log the file path being built
+                console.log(`Building file link: ${file.name} → ${filePath}`);
 
                 html += `
                     <a href="#${filePath}" class="item file-item">
