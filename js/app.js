@@ -5,14 +5,43 @@ import JSONFormatter from 'https://cdn.skypack.dev/json-formatter-js@2.3.4?min';
 // Main application
 (async function() {
     const contentContainer = document.getElementById('content-container');
+    const ROOT_DIR = 'quran'; // Define the root directory
+
+    // Helper function to clean paths and prevent duplication
+    function cleanPath(path) {
+        // If path starts with a leading slash, remove it
+        path = path.replace(/^\/+/, '');
+
+        // If we see patterns like "quran/quran/..." reduce to just "quran/..."
+        if (path.match(new RegExp(`^${ROOT_DIR}/${ROOT_DIR}`))) {
+            path = path.replace(new RegExp(`^${ROOT_DIR}/${ROOT_DIR}`), ROOT_DIR);
+        }
+
+        // Make sure path starts with ROOT_DIR
+        if (!path.startsWith(ROOT_DIR)) {
+            path = `${ROOT_DIR}/${path}`;
+        }
+
+        // Remove any double slashes and trailing slash
+        return path.replace(/\/+/g, '/').replace(/\/$/, '');
+    }
+
+    // Function to extract basename from path
+    function basename(path) {
+        const parts = path.split('/');
+        return parts[parts.length - 1];
+    }
 
     // Function to auto-detect files and folders in directory
     async function detectDirectoryContents(dirPath) {
         try {
             contentContainer.innerHTML = '<div class="loading">Reading directory contents...</div>';
 
+            // Ensure dirPath has a trailing slash for directory listing
+            const fetchPath = dirPath.endsWith('/') ? dirPath : dirPath + '/';
+
             // Try to fetch the directory listing
-            const response = await fetch(dirPath);
+            const response = await fetch(fetchPath);
             const html = await response.text();
 
             // Parse the HTML to find links
@@ -40,17 +69,20 @@ import JSONFormatter from 'https://cdn.skypack.dev/json-formatter-js@2.3.4?min';
                 const isDirectory = href.endsWith('/');
 
                 if (isDirectory) {
-                    // Remove trailing slash for display
-                    const dirName = href.replace(/\/$/, '');
+                    // Get just the directory name without path
+                    const dirName = basename(href.replace(/\/$/, ''));
+
                     items.directories.push({
                         name: dirName,
-                        path: `${dirPath}${href}`
+                        href: href
                     });
                 } else if (href.endsWith('.gz')) {
-                    // It's a .gz file
+                    // Get just the file name without path
+                    const fileName = basename(href);
+
                     items.files.push({
-                        name: href,
-                        path: `${dirPath}${href}`
+                        name: fileName,
+                        href: href
                     });
                 }
             }
@@ -64,18 +96,24 @@ import JSONFormatter from 'https://cdn.skypack.dev/json-formatter-js@2.3.4?min';
 
     // Function to display directory contents
     async function displayDirectory(path) {
-        // Ensure path ends with a slash for directory URLs
-        if (path && !path.endsWith('/')) {
-            path += '/';
+        // Normalize the path
+        path = cleanPath(path);
+
+        // Prepare fetch path - ensure it points to the correct directory
+        let fetchPath;
+
+        // Always fetch from the correct directory
+        if (path === ROOT_DIR) {
+            fetchPath = ROOT_DIR + '/';
+        } else {
+            fetchPath = path + '/';
         }
 
-        // Get the path for navigation
-        const pathForDisplay = path.replace(/\/$/, ''); // Remove trailing slash
-        const pathParts = pathForDisplay.split('/');
-        const currentDirName = pathParts.length > 0 ? pathParts[pathParts.length - 1] : 'Root';
+        // Get directory contents
+        const contents = await detectDirectoryContents(fetchPath);
 
-        // Detect directory contents
-        const contents = await detectDirectoryContents(path);
+        // Get the current directory name for display
+        const currentDirName = basename(path);
 
         let html = `
             <div class="directory">
@@ -83,30 +121,29 @@ import JSONFormatter from 'https://cdn.skypack.dev/json-formatter-js@2.3.4?min';
         `;
 
         // Add breadcrumb navigation
-        if (pathParts.length > 0) {
-            html += '<div class="breadcrumb">';
+        html += '<div class="breadcrumb">';
 
-            // Add link to root
-            html += '<a href="#"><span class="home-icon">🏠</span> Home</a>';
+        // Add home link to quran
+        html += `<a href="#${ROOT_DIR}"><span class="home-icon">🏠</span> Home</a>`;
 
-            // Build the path progressively
-            let cumulativePath = '';
+        // Build breadcrumb path
+        if (path !== ROOT_DIR) {
+            const pathParts = path.split('/');
+            let breadcrumbPath = '';
+
             for (let i = 0; i < pathParts.length; i++) {
-                const part = pathParts[i];
-                if (part) {
-                    cumulativePath += (cumulativePath ? '/' : '') + part;
-                    const isLast = i === pathParts.length - 1;
+                breadcrumbPath += (breadcrumbPath ? '/' : '') + pathParts[i];
+                const isLast = i === pathParts.length - 1;
 
-                    if (isLast) {
-                        html += ` / <span class="current">${part}</span>`;
-                    } else {
-                        html += ` / <a href="#${cumulativePath}">${part}</a>`;
-                    }
+                if (isLast) {
+                    html += ` / <span class="current">${pathParts[i]}</span>`;
+                } else {
+                    html += ` / <a href="#${breadcrumbPath}">${pathParts[i]}</a>`;
                 }
             }
-
-            html += '</div>';
         }
+
+        html += '</div>';
 
         // Add directories section if any
         if (contents.directories.length > 0) {
@@ -114,11 +151,19 @@ import JSONFormatter from 'https://cdn.skypack.dev/json-formatter-js@2.3.4?min';
             html += '<div class="folder-list">';
 
             contents.directories.forEach(dir => {
-                // Create a hash path without the trailing slash
-                const hashPath = dir.path.replace(/^\.\//g, ''); // Remove leading './'
+                // Build proper hash path
+                let dirPath;
+
+                // If href already contains the full path
+                if (dir.href.startsWith(`${ROOT_DIR}/`)) {
+                    dirPath = cleanPath(dir.href);
+                } else {
+                    // Otherwise build the path from current location
+                    dirPath = cleanPath(`${path}/${dir.name}`);
+                }
 
                 html += `
-                    <a href="#${hashPath}" class="item folder-item">
+                    <a href="#${dirPath}" class="item folder-item">
                         <span class="icon">📁</span>
                         <span class="name">${dir.name}</span>
                     </a>
@@ -134,11 +179,19 @@ import JSONFormatter from 'https://cdn.skypack.dev/json-formatter-js@2.3.4?min';
             html += '<div class="file-list">';
 
             contents.files.forEach(file => {
-                // Create a hash path
-                const hashPath = file.path.replace(/^\.\//g, ''); // Remove leading './'
+                // Build proper hash path
+                let filePath;
+
+                // If href already contains the full path
+                if (file.href.startsWith(`${ROOT_DIR}/`)) {
+                    filePath = file.href;
+                } else {
+                    // Otherwise build the path from current location
+                    filePath = `${path}/${file.name}`;
+                }
 
                 html += `
-                    <a href="#${hashPath}" class="item file-item">
+                    <a href="#${filePath}" class="item file-item">
                         <span class="icon">📄</span>
                         <span class="name">${file.name.replace('.gz', '')}</span>
                     </a>
@@ -167,8 +220,14 @@ import JSONFormatter from 'https://cdn.skypack.dev/json-formatter-js@2.3.4?min';
         contentContainer.innerHTML = '<div class="loading">Loading file...</div>';
 
         try {
+            // Construct the full path if needed
+            let fetchPath = path;
+            if (!fetchPath.startsWith(ROOT_DIR + '/') && fetchPath !== ROOT_DIR) {
+                fetchPath = ROOT_DIR + '/' + path;
+            }
+
             // Fetch the .gz file
-            const response = await fetch(path);
+            const response = await fetch(fetchPath);
             if (!response.ok) {
                 throw new Error(`Failed to load file: ${response.status}`);
             }
@@ -188,7 +247,17 @@ import JSONFormatter from 'https://cdn.skypack.dev/json-formatter-js@2.3.4?min';
             // Extract filename and directory path
             const pathParts = path.split('/');
             const filename = pathParts.pop();
-            const dirPath = pathParts.join('/');
+
+            // Get the directory path for the back button
+            let dirPath = pathParts.join('/');
+            if (!dirPath) {
+                dirPath = ROOT_DIR;
+            } else if (!dirPath.startsWith(ROOT_DIR)) {
+                dirPath = ROOT_DIR + '/' + dirPath;
+            }
+
+            // Clean the dirPath to prevent issues when going back
+            dirPath = cleanPath(dirPath);
 
             // Create HTML structure
             let html = `
@@ -250,8 +319,8 @@ import JSONFormatter from 'https://cdn.skypack.dev/json-formatter-js@2.3.4?min';
         const hash = window.location.hash.substring(1);
 
         if (!hash || hash === '') {
-            // Show root directory (which should include quran)
-            displayDirectory('./');
+            // Redirect to quran directory if no hash
+            window.location.hash = ROOT_DIR;
             return;
         }
 
