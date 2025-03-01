@@ -3,18 +3,38 @@
 <head>
     <title>Welcome | Quran Gallery App</title>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Add Open Graph meta tags for better sharing -->
+    <meta property="og:title" content="Quran Gallery App">
+    <meta property="og:description" content="Explore the Quran with a modern interface">
+    <meta property="og:image" content="logo.png">
+    <!-- Add favicon -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
-    <header>
-        <img src="logo.png" alt="Logo" id="logo">
-    </header>
-    <main>
-        <h1>Welcome | Quran Gallery App</h1>
-        <p>Explore more at our main site.</p>
-        <a href="https://qurangallery.app" class="main-site-link">Visit our main site: Qurangallery.app</a>
-    </main>
-    <footer>
-        <p>&copy; 2024 Qurangallery.app</p>
-    </footer>
+<header>
+    <img src="logo.png" alt="Quran Gallery Logo" id="logo">
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="https://qurangallery.app" target="_blank">Main Site</a>
+    </nav>
+</header>
+
+<main>
+    <h1>Quran Gallery App</h1>
+    <p class="subtitle">Explore and study the Quran with a modern interface.</p>
+
+    <!-- This is where the content will be displayed -->
+    <div id="content-container"></div>
+</main>
+
+<footer>
+    <p>&copy; 2024 <a href="https://qurangallery.app" target="_blank">Qurangallery.app</a></p>
+    <p>Built with ❤️ for the Muslim community</p>
+</footer>
+
+<!-- Load the main application module -->
+<script type="module" src="js/app.js"></script>
 </body>
 </html>

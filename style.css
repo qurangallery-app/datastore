@@ -1,38 +1,251 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    text-align: center;
-}
+/* Complete CSS for directory browser */
 
-header {
-    background-color: #f2f2f2;
+/* Directory view */
+.directory {
     padding: 20px;
+    background-color: #f5f5f5;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-#logo {
-    width: 150px; /* Adjust as per your logo's dimensions */
+.directory h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
 }
 
-main {
-    padding: 50px 20px;
+.directory h3 {
+    margin-top: 25px;
+    margin-bottom: 15px;
+    color: #555;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
 }
 
-.main-site-link {
-    display: inline-block;
-    margin-top: 20px;
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
+/* Breadcrumb navigation */
+.breadcrumb {
+    padding: 8px 12px;
+    background-color: #fff;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    border: 1px solid #e0e0e0;
+}
+
+.breadcrumb a {
+    color: #1976d2;
     text-decoration: none;
-    border-radius: 5px;
 }
 
-footer {
-    background-color: #333;
-    color: white;
-    padding: 10px 20px;
-    position: absolute;
-    bottom: 0;
-    width: 100%;
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb .current {
+    color: #555;
+    font-weight: bold;
+}
+
+.home-icon {
+    margin-right: 3px;
+}
+
+/* Folder and file grids */
+.folder-list, .file-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #333;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.folder-item {
+    background-color: #e3f2fd;
+}
+
+.file-item {
+    background-color: white;
+}
+
+.item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.item .icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.item .name {
+    text-align: center;
+    word-break: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* Empty directory message */
+.no-items {
+    padding: 20px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    text-align: center;
+    color: #666;
+    margin-top: 20px;
+}
+
+/* File view */
+.file-view {
+    padding: 20px;
+    background-color: #f5f5f5;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.file-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.directory-name {
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.file-header h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.file-header button {
+    padding: 8px 12px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.file-header button:hover {
+    background-color: #e0e0e0;
+}
+
+/* JSON content */
+.json-content {
+    background-color: white;
+    border-radius: 4px;
+    padding: 15px;
+    max-height: 70vh;
+    overflow: auto;
+    border: 1px solid #ddd;
+}
+
+.json-controls {
+    margin-bottom: 15px;
+}
+
+.json-controls button {
+    padding: 6px 12px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.json-controls button:hover {
+    background-color: #e0e0e0;
+}
+
+/* Loading and error states */
+.loading {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+}
+
+.loading:after {
+    content: '.';
+    animation: dots 1.5s steps(5, end) infinite;
+    display: inline-block;
+    width: 0;
+    overflow: hidden;
+}
+
+@keyframes dots {
+    0%, 20% {
+        content: '.';
+    }
+    40% {
+        content: '..';
+    }
+    60% {
+        content: '...';
+    }
+    80%, 100% {
+        content: '';
+    }
+}
+
+.error {
+    padding: 20px;
+    background-color: #ffebee;
+    border-radius: 6px;
+    color: #c62828;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.error h2 {
+    margin-top: 0;
+}
+
+.error button {
+    margin-top: 15px;
+    padding: 8px 12px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .folder-list, .file-list {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+
+    .item .icon {
+        font-size: 20px;
+    }
+
+    .item .name {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .folder-list, .file-list {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+
+    .item {
+        padding: 10px;
+    }
+
+    .item .name {
+        font-size: 12px;
+    }
 }
