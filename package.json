@@ -1,0 +1,24 @@
+{
+  "name": "quran-extractor",
+  "version": "1.0.0",
+  "description": "Extract gzipped JSON files from the Quran dataset",
+  "main": "extract.js",
+  "type": "module",
+  "scripts": {
+    "extract": "bun extract.js",
+    "extract:all": "bun extract.js --all",
+    "extract:path": "bun extract.js --path"
+  },
+  "dependencies": {
+    "fflate": "^0.8.2",
+    "fs-extra": "^11.3.0",
+    "yargs": "^17.7.2"
+  },
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
