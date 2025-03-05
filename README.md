@@ -81,7 +81,7 @@ node extract.js --all --out=extracted-data
 
 
 
-```angular2html
+```bash
 # Compress a directory
 bun archiver.ts compress tafsirs
 
